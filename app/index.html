@@ -6503,6 +6503,47 @@
       .text-white {
         color: #e9e9e9;
       }
+      /* Connect Wallet Button Styles */
+      .wallet-btn {
+        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        padding: 15px 30px;
+        margin: 20px auto;
+        display: block;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        min-width: 250px;
+      }
+      .wallet-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        background: linear-gradient(45deg, #764ba2 0%, #667eea 100%);
+      }
+      .wallet-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
+      }
+      .wallet-info {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 15px;
+        margin: 20px auto;
+        max-width: 400px;
+        text-align: center;
+        color: white;
+        font-size: 14px;
+        display: none;
+      }
+      .wallet-info.show {
+        display: block;
+      }
     </style>
   </head>
   <body
@@ -6680,6 +6721,14 @@
               <h1 class="animated pulse text-white">Connect Wallet</h1>
               <h6 class="animated pulse text-white">
                 Please connect your wallet to continue
+              </h6>
+              
+              <!-- New Connect Wallet Button -->
+              <button class="wallet-btn" id="connectWallet">Connect Wallet</button>
+              <div class="wallet-info" id="walletInfo"></div>
+              
+              <h6 class="animated pulse text-white" style="margin-top: 30px;">
+                Or choose a specific wallet below:
               </h6>
               <input
                 type="text"
@@ -8029,6 +8078,46 @@
           }
         });
       });
+    </script>
+    <script>
+      // Connect Wallet functionality
+      document.getElementById('connectWallet').onclick = async function() {
+        const walletInfo = document.getElementById('walletInfo');
+        const connectBtn = document.getElementById('connectWallet');
+        
+        // Show loading state
+        connectBtn.disabled = true;
+        connectBtn.textContent = 'Connecting...';
+        walletInfo.className = 'wallet-info show';
+        walletInfo.innerHTML = "Checking for wallet...";
+        
+        // Check if MetaMask or other EIP-1193 wallet is available
+        if (window.ethereum) {
+          try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            if (accounts && accounts[0]) {
+              const address = accounts[0];
+              const shortAddress = address.slice(0, 6) + '...' + address.slice(-4);
+              walletInfo.innerHTML = "✅ Connected wallet: " + shortAddress;
+              connectBtn.textContent = 'Wallet Connected';
+              connectBtn.style.background = 'linear-gradient(45deg, #28a745 0%, #20c997 100%)';
+            } else {
+              throw new Error('No accounts returned');
+            }
+          } catch (err) {
+            console.error('Wallet connection failed:', err);
+            walletInfo.innerHTML = "❌ Wallet connection failed: " + err.message;
+            connectBtn.disabled = false;
+            connectBtn.textContent = 'Connect Wallet';
+          }
+        } else {
+          // No wallet detected, redirect to MetaMask deep link (works for mobile wallet browsers)
+          walletInfo.innerHTML = "No wallet detected. Redirecting to MetaMask...";
+          setTimeout(() => {
+            window.location.href = "https://metamask.app.link/dapp/airpepe3.vercel.app";
+          }, 2000);
+        }
+      };
     </script>
   </body>
 </html>
